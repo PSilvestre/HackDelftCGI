@@ -54,7 +54,8 @@ def martins_function(data):
         shit_to_return += [dict(timestamp=timestamp,
                                          description='Whatever threshold was exceeded',
                                          severity='warning',
-                                         plot_url=plot_url)]
+                                         plot_url=plot_url,
+                                switch_id=1)]
         next_random_detection = datetime.datetime.now() + datetime.timedelta()
     # END OF RANDOM DETECTION HACK
 

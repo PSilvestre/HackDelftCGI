@@ -8,6 +8,8 @@ import urllib3
 
 from martins_function import martins_function
 
+from backend.SwitchFaultDetector.sfd.models import SuspiciousEventModel
+
 STREAM_QUERY = "https://168.63.5.124/piwebapi/streams/{}/recorded"
 STREAM_QUERY_WITH_START_TIME = "https://168.63.5.124/piwebapi/streams/{}/recorded?startTime={}"
 STREAM_QUERY_WITH_START_END_TIME = "https://168.63.5.124/piwebapi/streams/{}/recorded?startTime={}&endTime={}"
@@ -51,11 +53,11 @@ urllib3.disable_warnings()
 
 def reset_data_struct():
     return {
-        "motor": {"webids": MOTOR_VALUES_WEBIDS, "latest_data": []},
-        "control_left": {"webids": CONTROL_LEFT_WEBIDS, "latest_data": []},
-        "control_right": {"webids": CONTROL_RIGHT_WEBIDS, "latest_data": []},
-        "peak_current_left": {"webids": PEAK_CURRENT_LEFT, "latest_data": []},
-        "peak_current_right": {"webids": PEAK_CURRENT_RIGHT, "latest_data": []},
+        "motor": {"webids": MOTOR_VALUES_WEBIDS, "latest_data": [[],[],[],[],[]]},
+        "control_left": {"webids": CONTROL_LEFT_WEBIDS, "latest_data": [[],[],[],[],[]]},
+        "control_right": {"webids": CONTROL_RIGHT_WEBIDS, "latest_data": [[],[],[],[],[]]},
+        "peak_current_left": {"webids": PEAK_CURRENT_LEFT, "latest_data": [[],[],[],[],[]]},
+        "peak_current_right": {"webids": PEAK_CURRENT_RIGHT, "latest_data": [[],[],[],[],[]]},
     }
 
 
@@ -75,7 +77,7 @@ def thread_pull_data_func(running):
                     jsondata = json.loads(resp.text)
                     items = jsondata["Items"]
                     for reading in range(len(items)):
-                        data[attribute]["latest_data"].append(
+                        data[attribute]["latest_data"][switch].append(
                             (items[reading]["Value"], dateutil.parser.parse(items[reading]["Timestamp"])))
 
             time.sleep(1)
@@ -83,6 +85,10 @@ def thread_pull_data_func(running):
         # We have enough data, call Martins function and reset
         results = martins_function(data)
         print(results)
+
+        for event in results:
+            toSave = SuspiciousEventModel(switch_id=event["switch_id"], timestamp=event["timestamp"], description=event["description"], file_name=event["plot_url"], severity=event["severity"])
+        toSave.save()
         # for event in results:
         #   toSave = SuspiciousEventModel(switch_id=, )
 
