@@ -4,7 +4,11 @@ import requests
 from requests import Request, Session
 from requests.auth import HTTPBasicAuth
 import dateutil.parser
+import urllib3
 
+from martins_function import martins_function
+
+from backend.SwitchFaultDetector.sfd.models import SuspiciousEventModel
 
 STREAM_QUERY = "https://168.63.5.124/piwebapi/streams/{}/recorded"
 STREAM_QUERY_WITH_START_TIME = "https://168.63.5.124/piwebapi/streams/{}/recorded?startTime={}"
@@ -44,37 +48,48 @@ PEAK_CURRENT_RIGHT = [
     "F1DPwz91T7MV00-ab1SR4aA0ZwZgAAAAT1NJSEFDS0FUSE9OXFdJU1NFTDA1LklOU0NIQUtFTFBJRUtSRUNIVFM"
 ]
 
+
+urllib3.disable_warnings()
+
 def reset_data_struct():
-    data = {
-        "motor": {"webids": MOTOR_VALUES_WEBIDS, "latest_data": []},
-        "control_left": {"webids": CONTROL_LEFT_WEBIDS, "latest_data": []},
-        "control_right": {"webids": CONTROL_RIGHT_WEBIDS, "latest_data": []},
-        "peak_current_left": {"webids": PEAK_CURRENT_LEFT, "latest_data": []},
-        "peak_current_right": {"webids": PEAK_CURRENT_RIGHT, "latest_data": []},
+    return {
+        "motor": {"webids": MOTOR_VALUES_WEBIDS, "latest_data": [[],[],[],[],[]]},
+        "control_left": {"webids": CONTROL_LEFT_WEBIDS, "latest_data": [[],[],[],[],[]]},
+        "control_right": {"webids": CONTROL_RIGHT_WEBIDS, "latest_data": [[],[],[],[],[]]},
+        "peak_current_left": {"webids": PEAK_CURRENT_LEFT, "latest_data": [[],[],[],[],[]]},
+        "peak_current_right": {"webids": PEAK_CURRENT_RIGHT, "latest_data": [[],[],[],[],[]]},
     }
 
-data = {}
 
-reset_data_struct()
 
 MINIBATCH_SIZE = 50
 
 
-def thread_pull_data():
+def thread_pull_data_func(running):
+    data = reset_data_struct()
 
-    while (True):
-        while (all([len(data[x]["latest_data"] for x in data.keys()) < MINIBATCH_SIZE])):
+    while (running[0]):
+        while (len(data["motor"]["latest_data"]) < MINIBATCH_SIZE):
             for attribute in data.keys():
                 for switch in range(len(data[attribute]["webids"])):
-                    resp = requests.get(STREAM_QUERY_WITH_START_TIME.format(data[attribute]["webids"][switch], "-1m"))
-                    if (len(resp.text) > 5):
-                        jsondata = json.loads(resp.text)
-                        items = jsondata["Items"]
-                        for reading in range(len(items)):
-                            data[attribute]["latest_data"].append((float(items[reading]["Value"]),dateutil.parser.parse(items[reading]["Timestamp"])))
+                    resp = requests.get(STREAM_QUERY_WITH_START_TIME.format(data[attribute]["webids"][switch], "-1h"),
+                                        auth=HTTPBasicAuth("Group09", "Hackathon09"), verify=False)
+                    jsondata = json.loads(resp.text)
+                    items = jsondata["Items"]
+                    for reading in range(len(items)):
+                        data[attribute]["latest_data"][switch].append(
+                            (items[reading]["Value"], dateutil.parser.parse(items[reading]["Timestamp"])))
 
-            time.sleep(61)
+            time.sleep(1)
 
-        #We have enough data, call Martins function and reset
+        # We have enough data, call Martins function and reset
+        results = martins_function(data)
+        print(results)
 
-        reset_data_struct()
+        for event in results:
+            toSave = SuspiciousEventModel(switch_id=event["switch_id"], timestamp=event["timestamp"], description=event["description"], file_name=event["plot_url"], severity=event["severity"])
+        toSave.save()
+        # for event in results:
+        #   toSave = SuspiciousEventModel(switch_id=, )
+
+        data = reset_data_struct()
