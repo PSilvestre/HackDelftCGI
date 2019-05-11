@@ -16,11 +16,11 @@ if __name__ == "__main__":
             "forget to activate a virtual environment?"
         )
     global running
-    running = True
-    data_pull_thread = Thread(thread_pull_data_func, (running,))
+    running = [True]
+    data_pull_thread = Thread(target=thread_pull_data_func, args=(running,))
     data_pull_thread.start()
 
     execute_from_command_line(sys.argv)
-    running = False
+    running[0] = False
 
     data_pull_thread.join()
