@@ -23,12 +23,11 @@ from rest_framework import routers
 
 router = routers.DefaultRouter()
 router.register(r'switches', SwitchViewSet, basename='switches')
-urlpatterns = router.urls
 
-# urlpatterns = [
-#     path('admin/', admin.site.urls),
-#     url(r'^getData/', get_data),
-#     path('get/<int:s_id>', get_switch, name='switch'),
-#     path('api/', include('rest_framework.urls', namespace='rest_framework')),
-#     #url(r'^.*', TemplateView.as_view(template_name="home.html"), name="home"),
-# ]
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    url(r'^getData/', get_data),
+    path('get/<int:s_id>', get_switch, name='switch'),
+    path(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^', include(router.urls), name="home"),
+]
