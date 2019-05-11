@@ -60,27 +60,18 @@ reset_data_struct()
 MINIBATCH_SIZE = 50
 
 
-
-
-
 def thread_pull_data():
-
-    #dateutil.parser.parse('2019-05-11T16:15:48.1620025Z')
-    pretty_json = json.loads(resp.text)
-
-    print(json.dumps(pretty_json, indent=2))
-
 
     while (True):
         while (all([len(data[x]["latest_data"] for x in data.keys()) < MINIBATCH_SIZE])):
-            for x in data.keys():
-                for i in range(len(data[x]["webids"])):
-                    resp = requests.get(STREAM_QUERY_WITH_START_TIME.format(data[x]["webids"], "-1m"))
+            for attribute in data.keys():
+                for switch in range(len(data[attribute]["webids"])):
+                    resp = requests.get(STREAM_QUERY_WITH_START_TIME.format(data[attribute]["webids"][switch], "-1m"))
                     if (len(resp.text) > 5):
                         jsondata = json.loads(resp.text)
                         items = jsondata["Items"]
-                        for j in range(len(items)):
-                            data[x]["latest_data"].append((float(items[j]["Value"]),dateutil.parser.parse(items[j]["Timestamp"])))
+                        for reading in range(len(items)):
+                            data[attribute]["latest_data"].append((float(items[reading]["Value"]),dateutil.parser.parse(items[reading]["Timestamp"])))
 
             time.sleep(61)
 
