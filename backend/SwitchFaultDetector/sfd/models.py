@@ -1,6 +1,12 @@
 from django.db import models
 
+
 # Create your models here.
-class ExampleModel(models.Model):
-	firstname    = models.CharField(max_length=200)
-	lastname     = models.CharField(max_length=200)
+class SwitchModel(models.Model):
+	switch_id = models.SmallIntegerField(null=False)
+	timestamp = models.DateTimeField(auto_now=False, null=False)
+	description = models.CharField(max_length=255, null=False)
+	file_name = models.CharField(max_length=255, null=False)
+
+	def __str__(self):
+		return f"{self.switch_id} {self.description}"

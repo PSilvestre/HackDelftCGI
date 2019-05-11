@@ -1,7 +1,8 @@
 from rest_framework import serializers
-from .models import ExampleModel
+from .models import SwitchModel
 
-class ExampleModelSerializer(serializers.ModelSerializer):
+
+class SwitchModelSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ExampleModel
-        fields = ('firstname', 'lastname')
+        model = SwitchModel
+        fields = ('switch_id', 'timestamp', 'description', 'file_name')

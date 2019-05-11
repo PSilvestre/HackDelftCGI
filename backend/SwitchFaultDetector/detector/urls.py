@@ -15,13 +15,20 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.conf.urls import url
+from django.conf.urls import include, url
 from django.urls import path
 from django.views.generic.base import TemplateView
 from sfd.views import *
+from rest_framework import routers
 
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    url(r'^getData/', get_data),
-    url(r'^.*', TemplateView.as_view(template_name="home.html"), name="home")
-]
+router = routers.DefaultRouter()
+router.register(r'switches', SwitchViewSet, basename='switches')
+urlpatterns = router.urls
+
+# urlpatterns = [
+#     path('admin/', admin.site.urls),
+#     url(r'^getData/', get_data),
+#     path('get/<int:s_id>', get_switch, name='switch'),
+#     path('api/', include('rest_framework.urls', namespace='rest_framework')),
+#     #url(r'^.*', TemplateView.as_view(template_name="home.html"), name="home"),
+# ]
