@@ -4,7 +4,9 @@ import requests
 from requests import Request, Session
 from requests.auth import HTTPBasicAuth
 import dateutil.parser
+import urllib3
 
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 STREAM_QUERY = "https://168.63.5.124/piwebapi/streams/{}/recorded"
 STREAM_QUERY_WITH_START_TIME = "https://168.63.5.124/piwebapi/streams/{}/recorded?startTime={}"
@@ -44,7 +46,8 @@ PEAK_CURRENT_RIGHT = [
     "F1DPwz91T7MV00-ab1SR4aA0ZwZgAAAAT1NJSEFDS0FUSE9OXFdJU1NFTDA1LklOU0NIQUtFTFBJRUtSRUNIVFM"
 ]
 
-def reset_data_struct():
+
+def reset_data_struct(data):
     data = {
         "motor": {"webids": MOTOR_VALUES_WEBIDS, "latest_data": []},
         "control_left": {"webids": CONTROL_LEFT_WEBIDS, "latest_data": []},
@@ -53,28 +56,40 @@ def reset_data_struct():
         "peak_current_right": {"webids": PEAK_CURRENT_RIGHT, "latest_data": []},
     }
 
-data = {}
 
-reset_data_struct()
+data = {
+    "motor": {"webids": MOTOR_VALUES_WEBIDS, "latest_data": []},
+    "control_left": {"webids": CONTROL_LEFT_WEBIDS, "latest_data": []},
+    "control_right": {"webids": CONTROL_RIGHT_WEBIDS, "latest_data": []},
+    "peak_current_left": {"webids": PEAK_CURRENT_LEFT, "latest_data": []},
+    "peak_current_right": {"webids": PEAK_CURRENT_RIGHT, "latest_data": []},
+}
 
-MINIBATCH_SIZE = 50
+reset_data_struct(data)
+
+MINIBATCH_SIZE = 100
 
 
 def thread_pull_data():
-
     while (True):
-        while (all([len(data[x]["latest_data"] for x in data.keys()) < MINIBATCH_SIZE])):
+        print([x for x in data.keys()])
+        while data["motor"]["latest_data"] < MINIBATCH_SIZE:
+            print(list(len(data[x]["latest_data"]) for x in data.keys()))
             for attribute in data.keys():
                 for switch in range(len(data[attribute]["webids"])):
-                    resp = requests.get(STREAM_QUERY_WITH_START_TIME.format(data[attribute]["webids"][switch], "-1m"))
-                    if (len(resp.text) > 5):
-                        jsondata = json.loads(resp.text)
-                        items = jsondata["Items"]
-                        for reading in range(len(items)):
-                            data[attribute]["latest_data"].append((float(items[reading]["Value"]),dateutil.parser.parse(items[reading]["Timestamp"])))
+                    resp = requests.get(STREAM_QUERY_WITH_START_TIME.format(data[attribute]["webids"][switch], "-10m"),
+                                        auth=HTTPBasicAuth("Group09", "Hackathon09"), verify=False)
+                    jsondata = json.loads(resp.text)
+                    print("got response")
+                    items = jsondata["Items"]
+                    for reading in range(len(items)):
+                        data[attribute]["latest_data"].append(
+                            (items[reading]["Value"], dateutil.parser.parse(items[reading]["Timestamp"])))
 
             time.sleep(61)
 
-        #We have enough data, call Martins function and reset
+    # We have enough data, call Martins function and reset
+    reset_data_struct(data)
 
-        reset_data_struct()
+
+thread_pull_data()
