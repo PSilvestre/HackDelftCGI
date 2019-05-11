@@ -26,7 +26,7 @@ def make_event_plot(start_time):
 
     return f.name
 
-def martins_function(data):
+def martins_actual_function(data):
     # data is a dict of attribute -> {"latest_data": list of tuple (float, datetime)}
 
     KEEP_LATEST = 100
@@ -81,3 +81,9 @@ def martins_function(data):
     #             last_reported_timestamp[KEY_NAME] = my_last = timestamp
 
     return shit_to_return
+
+def martins_function(data):
+    try:
+        return martins_actual_function(data)
+    except:
+        return []
