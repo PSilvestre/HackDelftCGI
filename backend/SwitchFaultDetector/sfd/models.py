@@ -2,7 +2,7 @@ from django.db import models
 
 
 # Create your models here.
-class SwitchModel(models.Model):
+class SuspiciousEventModel(models.Model):
 	switch_id = models.SmallIntegerField(null=False)
 	timestamp = models.DateTimeField(auto_now=False, null=False)
 	description = models.CharField(max_length=255, null=False)
