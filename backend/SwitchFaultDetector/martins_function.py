@@ -93,75 +93,103 @@ def make_event_plot(starttime_in, switch_id):
 
     return f.name
 
-def martins_actual_function(data):
-    # data is a dict of attribute -> {"latest_data": list of list [0:num_switches] of tuple (float, datetime)}
+class MartinsClass:
+    # calculate stats over historic past
+    def __init__(self, data):
+        muh_old_data_cache = {}
+        self.attribute_mean = {}
+        self.attribute_stddev = {}
 
-    KEEP_LATEST = 100
+        for key in data.keys():
+            for switch_id in range(len(data[key]['latest_data'])):
+                new_data = data[key]['latest_data'][switch_id]
 
-    # we want to keep our own window of the last 30 seconds or so
-    for key in data.keys():
-        for switch_id in range(len(data[key]['latest_data'])):
-            new_data = data[key]['latest_data'][switch_id]
+                if switch_id not in muh_old_data_cache:
+                    muh_old_data_cache[switch_id] = {}
 
-            if not len(new_data):
-                continue
+                muh_len = len(new_data)
+                muh_old_data_cache[switch_id][key] = np.empty((muh_len, 2), dtype=object)
 
-            # update cache
-            if switch_id not in muh_big_cache:
-                muh_big_cache[switch_id] = {}
-            if key not in muh_big_cache[switch_id]:
-                muh_big_cache[switch_id][key] = np.empty((KEEP_LATEST, 2), dtype=object)
-                muh_big_cache[switch_id][key][:,0] = datetime.datetime.fromtimestamp(0, tz=pytz.UTC)   # i hate you i hate you i hate you i hate y
+                for i, (value, timestamp) in enumerate(new_data):
+                    muh_old_data_cache[switch_id][key][i,:] = timestamp, value
 
-            # push old data
-            muh_big_cache[switch_id][key][:-len(new_data),:] = muh_big_cache[switch_id][key][len(new_data):,:]
+                self.attribute_mean[(switch_id, key)] = np.mean(muh_old_data_cache[switch_id][key][:,1])
+                self.attribute_stddev[(switch_id, key)] = np.std(muh_old_data_cache[switch_id][key][:,1])
 
-            for i, (value, timestamp) in enumerate(new_data):
-                if KEEP_LATEST-len(new_data)+i >= 0:
-                    muh_big_cache[switch_id][key][KEEP_LATEST-len(new_data)+i,:] = timestamp, value
+        print('MEAN', self.attribute_mean)
+        print('STD-DEV', self.attribute_stddev)
 
-    shit_to_return = []
+    def martins_actual_like_function(self, data):
+        # data is a dict of attribute -> {"latest_data": list of list [0:num_switches] of tuple (float, datetime)}
 
-    global next_random_detection
+        KEEP_LATEST = 100
 
-    for switch_id in muh_big_cache.keys():
-        # RANDOM DETECTION HACK
-        if next_random_detection is None or datetime.datetime.now() > next_random_detection:
-            timestamp = muh_big_cache[switch_id]['motor'][-1,0]
-            plot_url = make_event_plot(timestamp, switch_id)
-            shit_to_return += [dict(timestamp=timestamp,
-                                    description='Whatever threshold was exceeded',
-                                    severity='warning',
-                                    plot_url=plot_url,
-                                    switch_id=switch_id)]
-            next_random_detection = datetime.datetime.now() + datetime.timedelta(seconds=RANDOM_DETECTION_PERIOD)
-        # END OF RANDOM DETECTION HACK
+        # we want to keep our own window of the last 30 seconds or so
+        for key in data.keys():
+            for switch_id in range(len(data[key]['latest_data'])):
+                new_data = data[key]['latest_data'][switch_id]
 
-        # KEY_NAME = 'TODO'
-        # THRESHOLD = 1000
-        # TIME_TRAVEL = datetime.timedelta(seconds=3)
+                if not len(new_data):
+                    continue
 
-        # # dumb detection for now
-        # if KEY_NAME in muh_cache:
-        #     my_last = last_reported_timestamp[KEY_NAME] if KEY_NAME in last_reported_timestamp or None
+                # update cache
+                if switch_id not in muh_big_cache:
+                    muh_big_cache[switch_id] = {}
+                if key not in muh_big_cache[switch_id]:
+                    muh_big_cache[switch_id][key] = np.empty((KEEP_LATEST, 2), dtype=object)
+                    muh_big_cache[switch_id][key][:,0] = datetime.datetime.fromtimestamp(0, tz=pytz.UTC)   # i hate you i hate you i hate you i hate y
 
-        #     for i in range(len(muh_cache[KEY_NAME])):
-        #         value, timestamp = muh_cache[KEY_NAME][i]
+                # push old data
+                muh_big_cache[switch_id][key][:-len(new_data),:] = muh_big_cache[switch_id][key][len(new_data):,:]
 
-        #         if (my_last is None or timestamp > my_last) and value > THRESHOLD:
-        #             plot_url = make_event_plot(timestamp - TIME_TRAVEL)
+                for i, (value, timestamp) in enumerate(new_data):
+                    if KEEP_LATEST-len(new_data)+i >= 0:
+                        muh_big_cache[switch_id][key][KEEP_LATEST-len(new_data)+i,:] = timestamp, value
 
-        #             shit_to_return += [dict(timestamp=timestamp,
-        #                                     description='Whatever threshold was exceeded',
-        #                                     severity='warning',
-        #                                     plot_url=plot_url)]
+        shit_to_return = []
 
-        #             last_reported_timestamp[KEY_NAME] = my_last = timestamp
+        global next_random_detection
 
-    return shit_to_return
+        for switch_id in muh_big_cache.keys():
+            # RANDOM DETECTION HACK
+            # if next_random_detection is None or datetime.datetime.now() > next_random_detection:
+            #     timestamp = muh_big_cache[switch_id]['motor'][-1,0]
+            #     plot_url = make_event_plot(timestamp, switch_id)
+            #     shit_to_return += [dict(timestamp=timestamp,
+            #                             description='Whatever threshold was exceeded',
+            #                             severity='warning',
+            #                             plot_url=plot_url,
+            #                             switch_id=switch_id)]
+            #     next_random_detection = datetime.datetime.now() + datetime.timedelta(seconds=RANDOM_DETECTION_PERIOD)
+            # END OF RANDOM DETECTION HACK
 
-def martins_function(data):
-    try:
-        return martins_actual_function(data)
-    except:
-        return []
+            KEY_NAME = 'time_end_motor_Power_control_right'
+            THRESHOLD = self.attribute_mean[(switch_id, KEY_NAME)] + 3 * self.attribute_stddev[(switch_id, KEY_NAME)]
+
+            # dumb detection for now
+            for switch_id in muh_big_cache.keys():
+                if KEY_NAME in muh_big_cache[switch_id]:
+                    my_last = last_reported_timestamp[(switch_id, KEY_NAME)] if (switch_id, KEY_NAME) in last_reported_timestamp else None
+
+                    for i in range(len(muh_big_cache[switch_id][KEY_NAME])):
+                        timestamp, value = muh_big_cache[switch_id][KEY_NAME][i]
+
+                        if value is not None and (my_last is None or timestamp > my_last) and value > THRESHOLD:
+                            plot_url = make_event_plot(timestamp, switch_id)
+
+                            shit_to_return += [dict(timestamp=timestamp,
+                                                    description='time_end_motor_Power_control_right threshold was exceeded',
+                                                    severity='warning',
+                                                    plot_url=plot_url,
+                                                    switch_id=switch_id)]
+
+                            last_reported_timestamp[(switch_id, KEY_NAME)] = my_last = timestamp
+
+        return shit_to_return
+
+    def process_additional_data(self, data):
+        #try:
+        return self.martins_actual_like_function(data)
+        #except Exception as ex:
+        #    # print(ex)
+        #    return []

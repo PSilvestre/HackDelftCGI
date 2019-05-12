@@ -6,7 +6,7 @@ from requests.auth import HTTPBasicAuth
 import dateutil.parser
 import urllib3
 
-from martins_function import martins_function
+from martins_function import MartinsClass
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "detector.settings")
 import django
@@ -107,7 +107,43 @@ OUT_OF_CONTROL_TIME = [
     "F1DPwz91T7MV00-ab1SR4aA0ZweAAAAAT1NJSEFDS0FUSE9OXFdJU1NFTDA1LlVJVENPTlRST0xFVElKRA"
 ]
 
+ENERGY_SURFACE_RIGHT = [
+    "F1DPwz91T7MV00-ab1SR4aA0ZwEwAAAAT1NJSEFDS0FUSE9OXFdJU1NFTDAxLkVORVJHSUUgT1BQRVJWTEFLVEUgUkVDSFRT",
+    "F1DPwz91T7MV00-ab1SR4aA0ZwfQAAAAT1NJSEFDS0FUSE9OXFdJU1NFTDAyLkVORVJHSUUgT1BQRVJWTEFLVEUgUkVDSFRT",
+    "F1DPwz91T7MV00-ab1SR4aA0ZwlQAAAAT1NJSEFDS0FUSE9OXFdJU1NFTDAzLkVORVJHSUUgT1BQRVJWTEFLVEUgUkVDSFR",
+    "F1DPwz91T7MV00-ab1SR4aA0ZwrwAAAAT1NJSEFDS0FUSE9OXFdJU1NFTDA0LkVORVJHSUUgT1BQRVJWTEFLVEUgUkVDSFRT",
+    "F1DPwz91T7MV00-ab1SR4aA0ZwZAAAAAT1NJSEFDS0FUSE9OXFdJU1NFTDA1LkVORVJHSUUgT1BQRVJWTEFLVEUgUkVDSFRT"
+]
+
+TURN_AROUND_TIME_LEFT_MOTOR = [
+    "F1DPwz91T7MV00-ab1SR4aA0ZwGAAAAAT1NJSEFDS0FUSE9OXFdJU1NFTDAxLk9NTE9PUFRJSkRMSU5LU19NT1RPUlNUUk9PTQ",
+    "F1DPwz91T7MV00-ab1SR4aA0ZwhAAAAAT1NJSEFDS0FUSE9OXFdJU1NFTDAyLk9NTE9PUFRJSkRMSU5LU19NT1RPUlNUUk9PTQ",
+    "F1DPwz91T7MV00-ab1SR4aA0ZwnAAAAAT1NJSEFDS0FUSE9OXFdJU1NFTDAzLk9NTE9PUFRJSkRMSU5LU19NT1RPUlNUUk9PTQ",
+    "F1DPwz91T7MV00-ab1SR4aA0ZwtgAAAAT1NJSEFDS0FUSE9OXFdJU1NFTDA0Lk9NTE9PUFRJSkRMSU5LU19NT1RPUlNUUk9PTQ",
+    "F1DPwz91T7MV00-ab1SR4aA0ZwawAAAAT1NJSEFDS0FUSE9OXFdJU1NFTDA1Lk9NTE9PUFRJSkRMSU5LU19NT1RPUlNUUk9PTQ"
+]
+
 urllib3.disable_warnings()
+
+def not_reset_data_struct():
+    return {
+        # "peak_current_left": {"webids": PEAK_CURRENT_LEFT, "latest_data": [[],[],[],[],[]]},
+        # "peak_current_right": {"webids": PEAK_CURRENT_RIGHT, "latest_data": [[],[],[],[],[]]},
+        # "turn_around_time_right": {"webids": TURN_AROUND_TIME_RIGHT, "latest_data": [[],[],[],[],[]]},
+        # "turn_around_time_left": {"webids": TURN_AROUND_TIME_LEFT, "latest_data": [[],[],[],[],[]]},
+        # "time_end_motor_Power_control_left": {"webids": TIME_END_MOTOR_POWER_CONTROL_LEFT, "latest_data": [[],[],[],[],[]]},
+        "time_end_motor_Power_control_right": {"webids": TIME_END_MOTOR_POWER_CONTROL_RIGHT, "latest_data": [[],[],[],[],[]]},   # wel
+        "time_steering_motor_power_left": {"webids": TIME_STEERING_MOTOR_POWER_LEFT, "latest_data": [[],[],[],[],[]]},      # wel
+        "time_steering_motor_power_right": {"webids": TIME_STEERING_MOTOR_POWER_RIGHT, "latest_data": [[],[],[],[],[]]},  # goed
+        # "out_of_control_time": {"webids": OUT_OF_CONTROL_TIME, "latest_data": [[],[],[],[],[]]}
+
+        # todo: omlooptijdrechts relais
+        # todo: flachtewatche
+
+        "energy_surface_right": {"webids": ENERGY_SURFACE_RIGHT, "latest_data": [[],[],[],[],[]]},
+        "turn_around_time_left_motor": {"webids": TURN_AROUND_TIME_LEFT_MOTOR, "latest_data": [[],[],[],[],[]]},
+    }
+
 
 def reset_data_struct():
     return {
@@ -122,7 +158,10 @@ def reset_data_struct():
         "time_end_motor_Power_control_right": {"webids": TIME_END_MOTOR_POWER_CONTROL_RIGHT, "latest_data": [[],[],[],[],[]]},
         "time_steering_motor_power_left": {"webids": TIME_STEERING_MOTOR_POWER_LEFT, "latest_data": [[],[],[],[],[]]},
         "time_steering_motor_power_right": {"webids": TIME_STEERING_MOTOR_POWER_RIGHT, "latest_data": [[],[],[],[],[]]},
-        "out_of_control_time": {"webids": OUT_OF_CONTROL_TIME, "latest_data": [[],[],[],[],[]]}
+        "out_of_control_time": {"webids": OUT_OF_CONTROL_TIME, "latest_data": [[],[],[],[],[]]},
+
+        "energy_surface_right": {"webids": ENERGY_SURFACE_RIGHT, "latest_data": [[],[],[],[],[]]},
+        "turn_around_time_left_motor": {"webids": TURN_AROUND_TIME_LEFT_MOTOR, "latest_data": [[],[],[],[],[]]},
     }
 
 
@@ -130,10 +169,27 @@ MINIBATCH_SIZE = 50
 
 
 def thread_pull_data_func(running):
+    data = not_reset_data_struct()
+
+    for attribute in data.keys():
+        for switch in range(len(data[attribute]["webids"])):
+            resp = requests.get(STREAM_QUERY_WITH_START_TIME.format(data[attribute]["webids"][switch], "-7d"),
+                                auth=HTTPBasicAuth("Group09", "Hackathon09"), verify=False)
+            jsondata = json.loads(resp.text)
+            items = jsondata["Items"]
+            for reading in range(len(items)):
+                data[attribute]["latest_data"][switch].append(
+                    (items[reading]["Value"], dateutil.parser.parse(items[reading]["Timestamp"])))
+
+    print('make poo:')
+    poo = MartinsClass(data)
+
     data = reset_data_struct()
 
+
     while (running[0]):
-        while (len(data["motor"]["latest_data"][0]) < MINIBATCH_SIZE):
+        #print('nu wachten op de batch')
+        while all([len(data["motor"]["latest_data"][i]) < MINIBATCH_SIZE for i in range(5)]):
             for attribute in data.keys():
                 for switch in range(len(data[attribute]["webids"])):
                     resp = requests.get(STREAM_QUERY_WITH_START_TIME.format(data[attribute]["webids"][switch], "-2m"),
@@ -144,16 +200,18 @@ def thread_pull_data_func(running):
                         data[attribute]["latest_data"][switch].append(
                             (items[reading]["Value"], dateutil.parser.parse(items[reading]["Timestamp"])))
 
-            time.sleep(121)
+            time.sleep(113.582789253790)            # i just want to sleep
 
         # We have enough data, call Martins function and reset
-        results = martins_function(data)
+        results = poo.process_additional_data(data)
         print(results)
 
         for event in results:
             toSave = SwitchModel(switch_id=event["switch_id"], timestamp=event["timestamp"], description=event["description"], file_name=event["plot_url"], severity=event["severity"])
-        toSave.save()
+            toSave.save()
         # for event in results:
         #   toSave = SwitchModel(switch_id=, )
 
         data = reset_data_struct()
+
+    print('de thread is done')
