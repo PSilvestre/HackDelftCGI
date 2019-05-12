@@ -18,9 +18,10 @@ if __name__ == "__main__":
     global running
     running = [True]
     data_pull_thread = Thread(target=thread_pull_data_func, args=(running,))
-    data_pull_thread.start()
+    if sys.argv[1] == "runserver":
+        data_pull_thread.start()
 
     execute_from_command_line(sys.argv)
     running[0] = False
-
-    data_pull_thread.join()
+    if sys.argv[1] == "runserver":
+        data_pull_thread.join()

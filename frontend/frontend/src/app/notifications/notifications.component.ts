@@ -10,6 +10,8 @@ export class NotificationsComponent implements OnInit {
 
   switches = [];
   anomalies = 5;
+  image : string;
+  pathToImage: string;
   constructor(private api: ApiService) { }
 
   ngOnInit() {
@@ -27,5 +29,12 @@ export class NotificationsComponent implements OnInit {
       }
     );
 
+    this.switches.forEach(function(e) { e.show = false; console.log(e); });
+
+  }
+
+  expand(event: Event, i: number) {
+    this.switches[i].show = true;
+   this.pathToImage = this.switches[i].file_name;
   }
 }
