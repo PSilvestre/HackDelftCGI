@@ -5,7 +5,13 @@ from .models import SwitchModel
 from .serializers import SwitchModelSerializer
 from rest_framework import viewsets
 from django.http import HttpResponse
+import dateutil.parser
+import matplotlib
 
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+import numpy as np
 
 @csrf_exempt
 def get_data(request):
@@ -20,6 +26,25 @@ def get_data(request):
 def getimage(request):
     path = str(request.GET.get('path'))
     with open(path, 'rb') as f:
+        blob = f.read()
+
+        return HttpResponse(blob, content_type="image/png")
+
+
+@csrf_exempt
+def getarrow(request):
+    data = list(SwitchModel.objects.all())
+    dates = [x.timestamp for x in data]
+    lowest_ts = min(dates)
+    highest_ts = max(dates)
+
+    plt.figure()
+    plt.hlines(1,lowest_ts,highest_ts)
+    plt.eventplot(dates, orientation='horizontal', colors='r')
+    plt.axis('off')
+    plt.savefig("time.png")
+    plt.close()
+    with open("time.png", 'rb') as f:
         blob = f.read()
 
         return HttpResponse(blob, content_type="image/png")

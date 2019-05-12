@@ -28,6 +28,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^getData/', get_data),
     path(r'getimage', getimage),
+    path(r'getarrow', getarrow),
     path('get/<int:s_id>', get_switch, name='switch'),
     path(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^', include(router.urls), name="home"),

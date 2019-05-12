@@ -1,11 +1,38 @@
-<h1>Latest Notifications</h1>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css"
+      integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+<style>
+  a:hover.NO-FUCKING-UNDERLINES {
+    text-decoration: none;
+  }
 
-<div *ngFor="let s of switches; let i = index" class="alert alert-dismissible alert-danger">
-  <button type="button" class="close" data-dismiss="alert">&times;</button>
-  <strong>Switch {{s.switch_id}}</strong> &nbsp;&nbsp;{{s.description}}<br>Time: {{s.timestamp}}<br>
-  <button type="button" class="btn btn-primary" (click)="expand($event, i)">Expand</button>
+  .NO-FUCKING-UNDERLINES > .alert {
+    margin-bottom: 25px;
+  }
+</style>
 
-  <div *ngIf="s.show == true" class="alert alert-dismissible alert-danger">
-    <img src="http://localhost:8000/getimage?path={{this.pathToImage}}">
+<div class="container">
+  <div class="row"><h1>Latest Notifications</h1></div>
+<br>
+  <div row class="NO-FUCKING-UNDERLINES">
+    <div *ngFor="let s of switches; let i = index" class=" column alert alert-warning alert-dismissable" role="alert"
+         (click)="expand($event, i)">
+      <div class="row">
+        <div class="col-9">
+          <div class="text-uppercase" style="margin-bottom: 8px; font-weight: bold"><i
+            class="fa fa-exclamation-triangle"></i>&ensp;Warning
+          </div>
+          <h3>{{s.description}}</h3>
+          <strong>Switch {{s.switch_id}}</strong>
+        </div>
+        <div class="col-3 d-flex flex-column justify-content-end">
+          <div class="col text-right"> <button type="button" class="close" data-dismiss="alert">&times;</button></div>
+          <div class="col text-right d-inline mx-0 text-center"><p class="text-muted">Time: {{s.timestamp}}</p></div>
+        </div>
+      </div>
+
+      <div *ngIf="s.show == true" class=" row">
+        <img src="http://localhost:8000/getimage?path={{this.pathToImage}}">
+      </div>
+    </div>
   </div>
 </div>

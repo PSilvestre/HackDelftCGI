@@ -8,13 +8,15 @@ import {HomeComponent} from './home/home.component';
 import { NotificationsComponent } from './notifications/notifications.component';
 import { HttpClientModule } from '@angular/common/http';
 import {AboutmeComponent} from './aboutme/aboutme.component';
+import { ArrowComponent } from './arrow/arrow.component';
 @NgModule({
   declarations: [
     AppComponent,
     HeaderComponent,
     HomeComponent,
     NotificationsComponent,
-    AboutmeComponent
+    AboutmeComponent,
+    ArrowComponent
   ],
   imports: [
     BrowserModule,

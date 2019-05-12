@@ -24,18 +24,30 @@ export class NotificationsComponent implements OnInit {
     this.api.getAllSwitches().subscribe(
       data => {
         this.switches = data.reverse();
+        this.switches.forEach(function(e) {
+          e.show = false;
+          e.switch_id += 1;
+          const hours = Math.round(( new Date().getTime() - new Date(e.timestamp).getTime()) / 1000 / 60 / 60);
+          e.timestamp = hours + "hours ago.";
+          console.log(e.timestamp);
+        });
       },
       error => {
         console.log(error);
       }
     );
 
-    this.switches.forEach(function(e) { e.show = false; console.log(e); });
+
 
   }
 
   expand(event: Event, i: number) {
-    this.switches[i].show = true;
+    if(this.switches[i].show == true) {
+      this.switches[i].show = false;
+    }else {
+      this.switches[i].show = true;
+    }
+
    this.pathToImage = this.switches[i].file_name;
   }
 }
