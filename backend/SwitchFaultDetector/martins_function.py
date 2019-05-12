@@ -38,21 +38,56 @@ def data_for_period(table, start, origin, end):
     #print(t.shape)
     return t
 
-def make_event_plot(starttime_in, switch_id):
-    f = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
-    f.close()
+def find_peak_before_time(switch_id, time):
+    # to do that, iterate backwards until we get a peak and then a zero
+    i = muh_big_cache[switch_id]['motor'].shape[0] - 1
 
-    starttime = starttime_in - datetime.timedelta(seconds=3)
-    endtime = starttime_in + datetime.timedelta(seconds=3)
+    while i >= 0:
+        # found the peak
+        if muh_big_cache[switch_id]['motor'][i][1] is None:
+            return None
+        elif muh_big_cache[switch_id]['motor'][i][0] < time and muh_big_cache[switch_id]['motor'][i][1] > 10:
+            break
+        else:
+            i -= 1
+
+    while i >= 0:
+        # found the zero
+        if muh_big_cache[switch_id]['motor'][i][1] is None:
+            return None
+        elif muh_big_cache[switch_id]['motor'][i][1] < 0.3:
+            break
+        else:
+            i -= 1
+
+    if i >= 0:
+        return i
+    else:
+        return None
+
+
+def make_event_plot(starttime_in, switch_id):
+    # find where the event proper starts (the starttime we get is in fact, time of detection)
+    i = find_peak_before_time(switch_id, starttime_in)
+
+    if i is not None:
+        starttime_in = muh_big_cache[switch_id]['motor'][i][0]
+
+    starttime = starttime_in - datetime.timedelta(seconds=0.5)
+    endtime = starttime_in + datetime.timedelta(seconds=4)
 
     motorstroom_period = data_for_period(muh_big_cache[switch_id]['motor'], starttime, starttime_in, endtime)
     #motorstroom_period_ = motorstroom_period.tolist()
     #print(motorstroom_period)
 
-    plt.plot(good_waveform[:,0], good_waveform[:,1], color=(0,0,0), alpha=0.5, linewidth=3)
+    f = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
+    f.close()
 
-    plt.plot(motorstroom_period[:,0], motorstroom_period[:,1], color=(0,0,0), linewidth=3)
-    plt.xlim([-3, 3])
+    plt.plot(good_waveform[:,0], good_waveform[:,1], color=(0,0,0), alpha=0.3, linewidth=2)
+
+    plt.plot(motorstroom_period[:,0], motorstroom_period[:,1], '--', color=(0.9, 0.2, 0.07), alpha=1, linewidth=2)
+    plt.xlim([-0.5, 2])
+    plt.grid()
 
     plt.savefig(f.name)
 
