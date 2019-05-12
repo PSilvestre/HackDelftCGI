@@ -68,6 +68,14 @@ def find_peak_before_time(switch_id, time):
     else:
         return None
 
+def zero_order_hold(matrix):
+    neue = np.zeros((matrix.shape[0] * 2 - 1, matrix.shape[1]))
+
+    neue[::2,:]   = matrix[:,:]     # plain copy every even row
+    neue[1::2,0]  = matrix[1:,0]-0.001    # copy timestamp for every odd row except the first and subtract
+    neue[1::2,1:] = matrix[:matrix.shape[0]-1,1:]         # copy data for every even row except the last
+
+    return neue
 
 def make_event_plot(starttime_in, switch_id):
     # find where the event proper starts (the starttime we get is in fact, time of detection)
@@ -86,14 +94,35 @@ def make_event_plot(starttime_in, switch_id):
     f = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
     f.close()
 
-    plt.plot(good_waveform[:, 0], good_waveform[:, 1], color=(0, 0, 0), alpha=0.3, linewidth=2)
+    fx, (a0, a1, a2) = plt.subplots(3, 1, figsize=(10, 7), gridspec_kw={'height_ratios': [3, 1, 1]})
 
-    plt.plot(motorstroom_period[:, 0], motorstroom_period[:, 1], '--', color=(0.9, 0.2, 0.07), alpha=1, linewidth=2)
-    plt.xlim([-0.5, 2])
-    plt.grid()
+    a0.plot(good_waveform[:, 0], good_waveform[:, 1], color=(0, 0, 0), alpha=0.3, linewidth=2)
+
+    a0.plot(motorstroom_period[:, 0], motorstroom_period[:, 1], '--', color=(0.9, 0.2, 0.07), alpha=1, linewidth=2)
+    a0.set_xlim([-0.5, 2])
+    a0.grid()
+
+    sturing_links_period = zero_order_hold(data_for_period(muh_big_cache[switch_id]['steering_left'], starttime, starttime_in, endtime))
+    a1.plot(sturing_links_period[:,0], sturing_links_period[:,1], alpha=0.7, label='Command LEFT', linewidth=2)
+
+    sturing_rechts_period = zero_order_hold(data_for_period(muh_big_cache[switch_id]['steering_right'], starttime, starttime_in, endtime))
+    a1.plot(sturing_rechts_period[:,0], sturing_rechts_period[:,1], alpha=0.7, label='Command RIGHT', linewidth=2)
+    a1.set_xlim([-0.5, 2])
+    a1.legend()
+
+    controle_links_period = zero_order_hold(data_for_period(muh_big_cache[switch_id]['control_left'], starttime, starttime_in, endtime))
+    a2.plot(controle_links_period[:,0], controle_links_period[:,1], alpha=0.7, label='Indication LEFT', linewidth=2)
+
+    controle_rechts_period = zero_order_hold(data_for_period(muh_big_cache[switch_id]['control_right'], starttime, starttime_in, endtime))
+    a2.plot(controle_rechts_period[:,0], controle_rechts_period[:,1], alpha=0.7, label='Indication RIGHT', linewidth=2)
+    a2.set_xlim([-0.5, 2])
+    a2.legend()
+
+
+    #fx.tight_layout()
 
     plt.savefig(f.name)
-    plt.close()
+    plt.close(fx)
 
     return f.name
 
