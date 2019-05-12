@@ -1,4 +1,4 @@
-import json
+import json, os
 import time
 import requests
 from requests import Request, Session
@@ -8,7 +8,11 @@ import urllib3
 
 from martins_function import martins_function
 
-from backend.SwitchFaultDetector.sfd.models import SuspiciousEventModel
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "detector.settings")
+import django
+django.setup()
+
+from sfd.models import SwitchModel
 
 STREAM_QUERY = "https://168.63.5.124/piwebapi/streams/{}/recorded"
 STREAM_QUERY_WITH_START_TIME = "https://168.63.5.124/piwebapi/streams/{}/recorded?startTime={}"
@@ -69,7 +73,7 @@ def thread_pull_data_func(running):
     data = reset_data_struct()
 
     while (running[0]):
-        while (len(data["motor"]["latest_data"]) < MINIBATCH_SIZE):
+        while (len(data["motor"]["latest_data"][0]) < MINIBATCH_SIZE):
             for attribute in data.keys():
                 for switch in range(len(data[attribute]["webids"])):
                     resp = requests.get(STREAM_QUERY_WITH_START_TIME.format(data[attribute]["webids"][switch], "-1h"),
@@ -87,9 +91,9 @@ def thread_pull_data_func(running):
         print(results)
 
         for event in results:
-            toSave = SuspiciousEventModel(switch_id=event["switch_id"], timestamp=event["timestamp"], description=event["description"], file_name=event["plot_url"], severity=event["severity"])
+            toSave = SwitchModel(switch_id=event["switch_id"], timestamp=event["timestamp"], description=event["description"], file_name=event["plot_url"], severity=event["severity"])
         toSave.save()
         # for event in results:
-        #   toSave = SuspiciousEventModel(switch_id=, )
+        #   toSave = SwitchModel(switch_id=, )
 
         data = reset_data_struct()

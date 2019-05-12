@@ -3,7 +3,7 @@ import os
 import sys
 from threading import Thread
 
-from backend.SwitchFaultDetector.APIService import thread_pull_data_func
+from APIService import thread_pull_data_func
 
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "detector.settings")
