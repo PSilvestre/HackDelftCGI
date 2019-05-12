@@ -17,6 +17,7 @@ export class NotificationsComponent implements OnInit {
   ngOnInit() {
     this.getSwitches();
     this.anomalies = this.switches.length;
+    setInterval(this.getSwitches, 20000);
   }
 
   getSwitches = () => {
