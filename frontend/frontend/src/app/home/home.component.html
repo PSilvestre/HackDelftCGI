@@ -3,10 +3,10 @@
     <div class="col-sm">
       <div class="jumbotron">
         <h1 class="display-3">Home Page</h1>
-        <p class="lead">Welcome to the Big Data Ai Powered Blockchain Anomaly Detection project! </p>
+        <p class="lead">Welcome to the Big Data Ai Powered Blockchain Anomaly Detection project! Below is a dashboard of quick statistics! </p>
         <hr class="my-4">
         <p class="lead">
-          <a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a>
+          <a class="btn btn-primary btn-lg" href="/about" role="button">Learn more</a>
         </p>
       </div>
     </div>
@@ -17,9 +17,21 @@
         <div class="card-header">Anomalies detected</div>
         <div class="card-body">
           <h4 class="card-title">Detected anomalies</h4>
-          <p class="card-text">Detected {{this.anomalies}} anomalies</p>
+          <p class="card-text">Detected <strong>{{this.anomalies}} </strong> anomalies</p>
         </div>
       </div>
     </div>
   </div>
+  <div class="row">
+    <div class="col-sm">
+      <div class="card text-white bg-primary mb-3" style="max-width: 20rem;">
+        <div class="card-header">Most affected</div>
+        <div class="card-body">
+          <h4 class="card-title">Switch with most anomalies</h4>
+          <p class="card-text">Switch 1 has the most anomalies.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>

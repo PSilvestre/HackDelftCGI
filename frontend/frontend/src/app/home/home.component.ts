@@ -8,18 +8,18 @@ import {ApiService} from '../api.service';
 })
 export class HomeComponent implements OnInit {
   switches = [];
-  anomalies = 5;
+  anomalies: number;
   constructor(private api: ApiService) { }
 
   ngOnInit() {
    this.getSwitches();
-   this.anomalies = this.switches.length;
   }
 
   getSwitches = () => {
     this.api.getAllSwitches().subscribe(
       data => {
         this.switches = data;
+        this.anomalies = this.switches.length;
       },
       error => {
         console.log(error);

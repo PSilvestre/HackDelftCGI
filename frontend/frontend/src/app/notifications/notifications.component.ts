@@ -22,7 +22,7 @@ export class NotificationsComponent implements OnInit {
   getSwitches = () => {
     this.api.getAllSwitches().subscribe(
       data => {
-        this.switches = data;
+        this.switches = data.reverse();
       },
       error => {
         console.log(error);
