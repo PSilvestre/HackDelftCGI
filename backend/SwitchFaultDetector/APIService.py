@@ -118,7 +118,6 @@ def reset_data_struct():
         "peak_current_right": {"webids": PEAK_CURRENT_RIGHT, "latest_data": [[],[],[],[],[]]},
         "turn_around_time_right": {"webids": TURN_AROUND_TIME_RIGHT, "latest_data": [[],[],[],[],[]]},
         "turn_around_time_left": {"webids": TURN_AROUND_TIME_LEFT, "latest_data": [[],[],[],[],[]]},
-        "section_setup_time": {"webids": SECTION_SETUP_TIME, "latest_data": [[],[],[],[],[]]},
         "time_end_motor_Power_control_left": {"webids": TIME_END_MOTOR_POWER_CONTROL_LEFT, "latest_data": [[],[],[],[],[]]},
         "time_end_motor_Power_control_right": {"webids": TIME_END_MOTOR_POWER_CONTROL_RIGHT, "latest_data": [[],[],[],[],[]]},
         "time_steering_motor_power_left": {"webids": TIME_STEERING_MOTOR_POWER_LEFT, "latest_data": [[],[],[],[],[]]},
