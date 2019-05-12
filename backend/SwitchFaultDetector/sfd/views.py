@@ -4,6 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import SwitchModel
 from .serializers import SwitchModelSerializer
 from rest_framework import viewsets
+from django.http import HttpResponse
 
 
 @csrf_exempt
@@ -14,12 +15,23 @@ def get_data(request):
         print(serializer.data)
         return JsonResponse(serializer.data, safe=False)
 
+
+@csrf_exempt
+def getimage(request):
+    path = str(request.GET.get('path'))
+    with open(path, 'rb') as f:
+        blob = f.read()
+
+        return HttpResponse(blob, content_type="image/png")
+
+
 class SwitchViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
     queryset = SwitchModel.objects.all()
     serializer_class = SwitchModelSerializer
+
 
 def get_switch(request, s_id):
     switch_values = SwitchModel.objects.filter(switch_id=s_id)

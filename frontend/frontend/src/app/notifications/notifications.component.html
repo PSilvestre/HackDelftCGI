@@ -1,6 +1,11 @@
 <h1>Latest Notifications</h1>
-<div *ngFor="let s of switches" class="alert alert-dismissible alert-danger">
+
+<div *ngFor="let s of switches; let i = index" class="alert alert-dismissible alert-danger">
   <button type="button" class="close" data-dismiss="alert">&times;</button>
-  <button type="button" class="expand" >&times;</button>
-  <strong>{{s.description}}</strong> Time: {{s.timestamp}}
+  <strong>Switch {{s.switch_id}}</strong> &nbsp;&nbsp;{{s.description}}<br>Time: {{s.timestamp}}<br>
+  <button type="button" class="btn btn-primary" (click)="expand($event, i)">Expand</button>
+
+  <div *ngIf="s.show == true" class="alert alert-dismissible alert-danger">
+    <img src="http://localhost:8000/getimage?path={{this.pathToImage}}">
+  </div>
 </div>
