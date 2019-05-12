@@ -1,0 +1,6 @@
+<h1>Latest Notifications</h1>
+<div *ngFor="let s of switches" class="alert alert-dismissible alert-danger">
+  <button type="button" class="close" data-dismiss="alert">&times;</button>
+  <button type="button" class="expand" >&times;</button>
+  <strong>{{s.description}}</strong> Time: {{s.timestamp}}
+</div>
