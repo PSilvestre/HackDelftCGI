@@ -43,6 +43,7 @@ def getarrow(request):
     plt.eventplot(dates, orientation='horizontal', colors='r')
     plt.axis('off')
     plt.savefig("time.png")
+    plt.
     plt.close()
     with open("time.png", 'rb') as f:
         blob = f.read()

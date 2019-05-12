@@ -121,7 +121,8 @@ def make_event_plot(starttime_in, switch_id):
 
     #fx.tight_layout()
 
-    plt.savefig(f.name)
+
+    plt.savefig(f.name, transparent=True)
     plt.close(fx)
 
     return f.name
@@ -204,15 +205,15 @@ class MartinsClass:
                 ('time_end_motor_Power_control_right',
                  lambda value: value > self.attribute_mean[(switch_id, 'time_end_motor_Power_control_right')] +
                                4 * self.attribute_stddev[(switch_id, 'time_end_motor_Power_control_right')],
-                 'time_end_motor_Power_control_right values are above normal'),
+                 'Settling time longer than expected (right-side)'),
                 ('time_steering_motor_power_left',
                  lambda value: value > self.attribute_mean[(switch_id, 'time_steering_motor_power_left')] +
                                3 * self.attribute_stddev[(switch_id, 'time_steering_motor_power_left')],
-                 'time_steering_motor_power_left values are above normal'),
+                 'Motor activity period longer than expected (left-side)'),
                 ('time_steering_motor_power_right',
                  lambda value: value > self.attribute_mean[(switch_id, 'time_steering_motor_power_right')] +
                                4 * self.attribute_stddev[(switch_id, 'time_steering_motor_power_right')],
-                 'time_steering_motor_power_right values are above normal'),
+                 'Spent abnormal amount of time switching to right'),
                 ('time_end_motor_Power_control_left',
                  lambda value: value > self.attribute_mean[(switch_id, 'time_end_motor_Power_control_left')] +
                                8 * self.attribute_stddev[(switch_id, 'time_end_motor_Power_control_left')],
@@ -220,15 +221,15 @@ class MartinsClass:
 
                 ('motor', lambda value: value > self.attribute_mean[(switch_id, 'motor')] +
                                         3 * self.attribute_stddev[(switch_id, 'motor')],
-                 'Amperage_Pull curve differs from healthy'),
+                 'Abnormal switching amperage profile'),
 
                 ('the_one_that_works', lambda value: value > self.attribute_mean[(switch_id, 'the_one_that_works')] +
                                                      2.5 * self.attribute_stddev[(switch_id, 'the_one_that_works')],
-                 'Secret Metrics are 2 sigma away'),
+                 'Abnormally high total switching power consuption'),
                 ('time_steering_motor_power_left',
                  lambda value: value > self.attribute_mean[(switch_id, 'time_steering_motor_power_left')] +
                                3 * self.attribute_stddev[(switch_id, 'time_steering_motor_power_left')],
-                 'Secret Metrics steering motor power left are 2 sigma away')
+                 'Spent abnormal amount of time switching to left')
             ]
 
             for KEY_NAME, callback, message in all_criteria:
