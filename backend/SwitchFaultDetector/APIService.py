@@ -135,6 +135,7 @@ urllib3.disable_warnings()
 
 def not_reset_data_struct():
     return {
+        "motor": {"webids": MOTOR_VALUES_WEBIDS, "latest_data": [[], [], [], [], []]},
         # "peak_current_left": {"webids": PEAK_CURRENT_LEFT, "latest_data": [[],[],[],[],[]]},
         # "peak_current_right": {"webids": PEAK_CURRENT_RIGHT, "latest_data": [[],[],[],[],[]]},
         # "turn_around_time_right": {"webids": TURN_AROUND_TIME_RIGHT, "latest_data": [[],[],[],[],[]]},
@@ -144,6 +145,8 @@ def not_reset_data_struct():
         "time_steering_motor_power_left": {"webids": TIME_STEERING_MOTOR_POWER_LEFT, "latest_data": [[],[],[],[],[]]},      # wel
         "time_steering_motor_power_right": {"webids": TIME_STEERING_MOTOR_POWER_RIGHT, "latest_data": [[],[],[],[],[]]},  # goed
         # "out_of_control_time": {"webids": OUT_OF_CONTROL_TIME, "latest_data": [[],[],[],[],[]]}
+        "time_end_motor_Power_control_left": {"webids": TIME_END_MOTOR_POWER_CONTROL_LEFT,
+                                              "latest_data": [[], [], [], [], []]},
 
         # todo: omlooptijdrechts relais
         # todo: flachtewatche
@@ -197,13 +200,15 @@ def thread_pull_data_func(running):
 
     data = reset_data_struct()
 
+    print("got to process data")
+
     # loop for ever and pull new data in
     while (running[0]):
         #print('nu wachten op de batch')
         while all([len(data["motor"]["latest_data"][i]) < MINIBATCH_SIZE for i in range(5)]):
             for attribute in data.keys():
                 for switch in range(len(data[attribute]["webids"])):
-                    resp = requests.get(STREAM_QUERY_WITH_START_TIME.format(data[attribute]["webids"][switch], "-2m"),
+                    resp = requests.get(STREAM_QUERY_WITH_START_TIME.format(data[attribute]["webids"][switch], "-30d"),
                                         auth=HTTPBasicAuth("Group09", "Hackathon09"), verify=False)
                     jsondata = json.loads(resp.text)
                     items = jsondata["Items"]
@@ -211,7 +216,7 @@ def thread_pull_data_func(running):
                         data[attribute]["latest_data"][switch].append(
                             (items[reading]["Value"], dateutil.parser.parse(items[reading]["Timestamp"])))
 
-            time.sleep(113.582789253790)            # i just want to sleep
+            time.sleep(30)            # i just want to sleep
 
         # We have enough data, call Martins function and reset
         results = poo.process_additional_data(data)

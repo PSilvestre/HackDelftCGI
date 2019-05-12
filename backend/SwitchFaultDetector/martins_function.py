@@ -1,4 +1,5 @@
 import matplotlib
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
@@ -17,10 +18,11 @@ good_waveform = np.loadtxt(os.path.join(os.path.dirname(__file__), '../../good_w
 
 RANDOM_DETECTION_PERIOD = 30
 
-def data_for_period(table, start, origin, end):
-    start_index = max(0, np.argmax(table[:,0] > start) - 1)
 
-    bools = table[:,0] > end
+def data_for_period(table, start, origin, end):
+    start_index = max(0, np.argmax(table[:, 0] > start) - 1)
+
+    bools = table[:, 0] > end
     if not any(bools):
         end_index = table.shape[0]
     else:
@@ -28,15 +30,16 @@ def data_for_period(table, start, origin, end):
 
     #     print('SPAN', start_index, end_index)
     cutout = np.copy(table[start_index:end_index])
-    #t[:,0] = [(y - start).seconds for y in t[:,0]]
-    #print(table.shape)
+    # t[:,0] = [(y - start).seconds for y in t[:,0]]
+    # print(table.shape)
     t = np.zeros(cutout.shape)
-    #print([(y - start) for y in cutout[:,0]])
-    t[:,0] = [(y - origin).total_seconds() for y in cutout[:,0]]
-    t[:,1] = cutout[:,1]
-    #t = np.vstack([[(y - start).seconds for y in table[:,0]], table[:,1]])
-    #print(t.shape)
+    # print([(y - start) for y in cutout[:,0]])
+    t[:, 0] = [(y - origin).total_seconds() for y in cutout[:, 0]]
+    t[:, 1] = cutout[:, 1]
+    # t = np.vstack([[(y - start).seconds for y in table[:,0]], table[:,1]])
+    # print(t.shape)
     return t
+
 
 def find_peak_before_time(switch_id, time):
     # to do that, iterate backwards until we get a peak and then a zero
@@ -77,21 +80,23 @@ def make_event_plot(starttime_in, switch_id):
     endtime = starttime_in + datetime.timedelta(seconds=4)
 
     motorstroom_period = data_for_period(muh_big_cache[switch_id]['motor'], starttime, starttime_in, endtime)
-    #motorstroom_period_ = motorstroom_period.tolist()
-    #print(motorstroom_period)
+    # motorstroom_period_ = motorstroom_period.tolist()
+    # print(motorstroom_period)
 
     f = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
     f.close()
 
-    plt.plot(good_waveform[:,0], good_waveform[:,1], color=(0,0,0), alpha=0.3, linewidth=2)
+    plt.plot(good_waveform[:, 0], good_waveform[:, 1], color=(0, 0, 0), alpha=0.3, linewidth=2)
 
-    plt.plot(motorstroom_period[:,0], motorstroom_period[:,1], '--', color=(0.9, 0.2, 0.07), alpha=1, linewidth=2)
+    plt.plot(motorstroom_period[:, 0], motorstroom_period[:, 1], '--', color=(0.9, 0.2, 0.07), alpha=1, linewidth=2)
     plt.xlim([-0.5, 2])
     plt.grid()
 
     plt.savefig(f.name)
+    plt.close()
 
     return f.name
+
 
 class MartinsClass:
     # calculate stats over historic past
@@ -111,10 +116,10 @@ class MartinsClass:
                 muh_old_data_cache[switch_id][key] = np.empty((muh_len, 2), dtype=object)
 
                 for i, (value, timestamp) in enumerate(new_data):
-                    muh_old_data_cache[switch_id][key][i,:] = timestamp, value
+                    muh_old_data_cache[switch_id][key][i, :] = timestamp, value
 
-                self.attribute_mean[(switch_id, key)] = np.mean(muh_old_data_cache[switch_id][key][:,1])
-                self.attribute_stddev[(switch_id, key)] = np.std(muh_old_data_cache[switch_id][key][:,1])
+                self.attribute_mean[(switch_id, key)] = np.mean(muh_old_data_cache[switch_id][key][:, 1])
+                self.attribute_stddev[(switch_id, key)] = np.std(muh_old_data_cache[switch_id][key][:, 1])
 
         print('MEAN', self.attribute_mean)
         print('STD-DEV', self.attribute_stddev)
@@ -137,14 +142,15 @@ class MartinsClass:
                     muh_big_cache[switch_id] = {}
                 if key not in muh_big_cache[switch_id]:
                     muh_big_cache[switch_id][key] = np.empty((KEEP_LATEST, 2), dtype=object)
-                    muh_big_cache[switch_id][key][:,0] = datetime.datetime.fromtimestamp(0, tz=pytz.UTC)   # i hate you i hate you i hate you i hate y
+                    muh_big_cache[switch_id][key][:, 0] = datetime.datetime.fromtimestamp(0,
+                                                                                          tz=pytz.UTC)  # i hate you i hate you i hate you i hate y
 
                 # push old data
-                muh_big_cache[switch_id][key][:-len(new_data),:] = muh_big_cache[switch_id][key][len(new_data):,:]
+                muh_big_cache[switch_id][key][:-len(new_data), :] = muh_big_cache[switch_id][key][len(new_data):, :]
 
                 for i, (value, timestamp) in enumerate(new_data):
-                    if KEEP_LATEST-len(new_data)+i >= 0:
-                        muh_big_cache[switch_id][key][KEEP_LATEST-len(new_data)+i,:] = timestamp, value
+                    if KEEP_LATEST - len(new_data) + i >= 0:
+                        muh_big_cache[switch_id][key][KEEP_LATEST - len(new_data) + i, :] = timestamp, value
 
         shit_to_return = []
 
@@ -166,14 +172,40 @@ class MartinsClass:
         # dumb detection for now
         for switch_id in muh_big_cache.keys():
             all_criteria = [
-                ('time_end_motor_Power_control_right', lambda value: value > self.attribute_mean[(switch_id, 'time_end_motor_Power_control_right')] +
-                                                                     3 * self.attribute_stddev[(switch_id, 'time_end_motor_Power_control_right')],
-                 'magic value time_end_motor_Power_control_right is above another magic value'),
+                ('time_end_motor_Power_control_right',
+                 lambda value: value > self.attribute_mean[(switch_id, 'time_end_motor_Power_control_right')] +
+                               4 * self.attribute_stddev[(switch_id, 'time_end_motor_Power_control_right')],
+                 'time_end_motor_Power_control_right values are above normal'),
+                ('time_steering_motor_power_left',
+                 lambda value: value > self.attribute_mean[(switch_id, 'time_steering_motor_power_left')] +
+                               3 * self.attribute_stddev[(switch_id, 'time_steering_motor_power_left')],
+                 'time_steering_motor_power_left values are above normal'),
+                ('time_steering_motor_power_right',
+                 lambda value: value > self.attribute_mean[(switch_id, 'time_steering_motor_power_right')] +
+                               4 * self.attribute_stddev[(switch_id, 'time_steering_motor_power_right')],
+                 'time_steering_motor_power_right values are above normal'),
+                ('time_end_motor_Power_control_left',
+                 lambda value: value > self.attribute_mean[(switch_id, 'time_end_motor_Power_control_left')] +
+                               8 * self.attribute_stddev[(switch_id, 'time_end_motor_Power_control_left')],
+                 'time_end_motor_Power_control_left values are above normal'),
+
+                ('motor', lambda value: value > self.attribute_mean[(switch_id, 'motor')] +
+                                        3 * self.attribute_stddev[(switch_id, 'motor')],
+                 'Amperage_Pull curve differs from healthy'),
+
+                ('the_one_that_works', lambda value: value > self.attribute_mean[(switch_id, 'the_one_that_works')] +
+                                                     2.5 * self.attribute_stddev[(switch_id, 'the_one_that_works')],
+                 'Secret Metrics are 2 sigma away'),
+                ('time_steering_motor_power_left',
+                 lambda value: value > self.attribute_mean[(switch_id, 'time_steering_motor_power_left')] +
+                               3 * self.attribute_stddev[(switch_id, 'time_steering_motor_power_left')],
+                 'Secret Metrics steering motor power left are 2 sigma away')
             ]
 
             for KEY_NAME, callback, message in all_criteria:
                 if KEY_NAME in muh_big_cache[switch_id]:
-                    my_last = last_reported_timestamp[(switch_id, KEY_NAME)] if (switch_id, KEY_NAME) in last_reported_timestamp else None
+                    my_last = last_reported_timestamp[(switch_id, KEY_NAME)] if (switch_id,
+                                                                                 KEY_NAME) in last_reported_timestamp else None
 
                     for i in range(len(muh_big_cache[switch_id][KEY_NAME])):
                         timestamp, value = muh_big_cache[switch_id][KEY_NAME][i]
@@ -192,8 +224,8 @@ class MartinsClass:
         return shit_to_return
 
     def process_additional_data(self, data):
-        #try:
+        # try:
         return self.martins_actual_like_function(data)
-        #except Exception as ex:
+        # except Exception as ex:
         #    # print(ex)
         #    return []
