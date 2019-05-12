@@ -5,12 +5,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import datetime
+import os
+import pytz
 import tempfile
 
 muh_big_cache = {}
 last_reported_timestamp = {}
 
 next_random_detection = None
+good_waveform = np.loadtxt(os.path.join(os.path.dirname(__file__), '../../good_waveform.csv'), delimiter=',')
 
 RANDOM_DETECTION_PERIOD = 30
 
@@ -46,7 +49,7 @@ def make_event_plot(starttime_in, switch_id):
     #motorstroom_period_ = motorstroom_period.tolist()
     #print(motorstroom_period)
 
-    # TODO: plot expected waveform in grey
+    plt.plot(good_waveform[:,0], good_waveform[:,1], color=(0,0,0), alpha=0.5, linewidth=3)
 
     plt.plot(motorstroom_period[:,0], motorstroom_period[:,1], color=(0,0,0), linewidth=3)
     plt.xlim([-3, 3])
@@ -73,7 +76,7 @@ def martins_actual_function(data):
                 muh_big_cache[switch_id] = {}
             if key not in muh_big_cache[switch_id]:
                 muh_big_cache[switch_id][key] = np.empty((KEEP_LATEST, 2), dtype=object)
-                muh_big_cache[switch_id][key][:,0] = datetime.datetime.fromtimestamp(0)
+                muh_big_cache[switch_id][key][:,0] = datetime.datetime.fromtimestamp(0, tz=pytz.UTC)   # i hate you i hate you i hate you i hate y
 
             # push old data
             muh_big_cache[switch_id][key][:-len(new_data),:] = muh_big_cache[switch_id][key][len(new_data):,:]
@@ -96,7 +99,7 @@ def martins_actual_function(data):
                                     severity='warning',
                                     plot_url=plot_url,
                                     switch_id=switch_id)]
-            next_random_detection = datetime.datetime.now() + datetime.timedelta(seconds=10)
+            next_random_detection = datetime.datetime.now() + datetime.timedelta(seconds=RANDOM_DETECTION_PERIOD)
         # END OF RANDOM DETECTION HACK
 
         # KEY_NAME = 'TODO'
