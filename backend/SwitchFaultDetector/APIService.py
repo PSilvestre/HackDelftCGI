@@ -76,7 +76,7 @@ def thread_pull_data_func(running):
         while (len(data["motor"]["latest_data"][0]) < MINIBATCH_SIZE):
             for attribute in data.keys():
                 for switch in range(len(data[attribute]["webids"])):
-                    resp = requests.get(STREAM_QUERY_WITH_START_TIME.format(data[attribute]["webids"][switch], "-1h"),
+                    resp = requests.get(STREAM_QUERY_WITH_START_TIME.format(data[attribute]["webids"][switch], "-5h"),
                                         auth=HTTPBasicAuth("Group09", "Hackathon09"), verify=False)
                     jsondata = json.loads(resp.text)
                     items = jsondata["Items"]

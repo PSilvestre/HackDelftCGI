@@ -16,7 +16,7 @@ export class ApiService {
 	  return this.http.get(this.baseurl + '/switches/?format=json', {headers: this.httpHeaders});
   }
 
-  getImage(imageLoc: string): Observable<any>{
-    return this.http.get(this.baseurl + '/getImage', {headers: this.httpHeaders, params: {path: imageLoc}});
+  getimage(imageLoc: string): Observable<any>{
+    return this.http.get(this.baseurl + '/getimage', {headers: this.httpHeaders, params: {path: imageLoc}});
   }
 }
