@@ -150,7 +150,7 @@ def not_reset_data_struct():
 
         "energy_surface_right": {"webids": ENERGY_SURFACE_RIGHT, "latest_data": [[],[],[],[],[]]},
         "turn_around_time_left_motor": {"webids": TURN_AROUND_TIME_LEFT_MOTOR, "latest_data": [[],[],[],[],[]]},
-        "the_one_that_works" : {"webids": THE_ONE_THAT_WORKS, "latest_data": [[],[],[],[],[]]}
+        "the_one_that_works" : {"webids": THE_ONE_THAT_WORKS, "latest_data": [[],[],[],[],[]]},
     }
 
 
@@ -171,6 +171,7 @@ def reset_data_struct():
 
         "energy_surface_right": {"webids": ENERGY_SURFACE_RIGHT, "latest_data": [[],[],[],[],[]]},
         "turn_around_time_left_motor": {"webids": TURN_AROUND_TIME_LEFT_MOTOR, "latest_data": [[],[],[],[],[]]},
+        "the_one_that_works": {"webids": THE_ONE_THAT_WORKS, "latest_data": [[], [], [], [], []]},
     }
 
 
