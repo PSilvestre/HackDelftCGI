@@ -150,35 +150,39 @@ class MartinsClass:
 
         global next_random_detection
 
+        # for switch_id in muh_big_cache.keys():
+        #     # RANDOM DETECTION HACK
+        #     # if next_random_detection is None or datetime.datetime.now() > next_random_detection:
+        #     #     timestamp = muh_big_cache[switch_id]['motor'][-1,0]
+        #     #     plot_url = make_event_plot(timestamp, switch_id)
+        #     #     shit_to_return += [dict(timestamp=timestamp,
+        #     #                             description='Whatever threshold was exceeded',
+        #     #                             severity='warning',
+        #     #                             plot_url=plot_url,
+        #     #                             switch_id=switch_id)]
+        #     #     next_random_detection = datetime.datetime.now() + datetime.timedelta(seconds=RANDOM_DETECTION_PERIOD)
+        #     # END OF RANDOM DETECTION HACK
+
+        # dumb detection for now
         for switch_id in muh_big_cache.keys():
-            # RANDOM DETECTION HACK
-            # if next_random_detection is None or datetime.datetime.now() > next_random_detection:
-            #     timestamp = muh_big_cache[switch_id]['motor'][-1,0]
-            #     plot_url = make_event_plot(timestamp, switch_id)
-            #     shit_to_return += [dict(timestamp=timestamp,
-            #                             description='Whatever threshold was exceeded',
-            #                             severity='warning',
-            #                             plot_url=plot_url,
-            #                             switch_id=switch_id)]
-            #     next_random_detection = datetime.datetime.now() + datetime.timedelta(seconds=RANDOM_DETECTION_PERIOD)
-            # END OF RANDOM DETECTION HACK
+            all_criteria = [
+                ('time_end_motor_Power_control_right', lambda value: value > self.attribute_mean[(switch_id, 'time_end_motor_Power_control_right')] +
+                                                                     3 * self.attribute_stddev[(switch_id, 'time_end_motor_Power_control_right')],
+                 'magic value time_end_motor_Power_control_right is above another magic value'),
+            ]
 
-            KEY_NAME = 'time_end_motor_Power_control_right'
-            THRESHOLD = self.attribute_mean[(switch_id, KEY_NAME)] + 3 * self.attribute_stddev[(switch_id, KEY_NAME)]
-
-            # dumb detection for now
-            for switch_id in muh_big_cache.keys():
+            for KEY_NAME, callback, message in all_criteria:
                 if KEY_NAME in muh_big_cache[switch_id]:
                     my_last = last_reported_timestamp[(switch_id, KEY_NAME)] if (switch_id, KEY_NAME) in last_reported_timestamp else None
 
                     for i in range(len(muh_big_cache[switch_id][KEY_NAME])):
                         timestamp, value = muh_big_cache[switch_id][KEY_NAME][i]
 
-                        if value is not None and (my_last is None or timestamp > my_last) and value > THRESHOLD:
+                        if value is not None and (my_last is None or timestamp > my_last) and callback(value):
                             plot_url = make_event_plot(timestamp, switch_id)
 
                             shit_to_return += [dict(timestamp=timestamp,
-                                                    description='time_end_motor_Power_control_right threshold was exceeded',
+                                                    description=message,
                                                     severity='warning',
                                                     plot_url=plot_url,
                                                     switch_id=switch_id)]

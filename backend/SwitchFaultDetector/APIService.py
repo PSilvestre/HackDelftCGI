@@ -171,6 +171,7 @@ MINIBATCH_SIZE = 50
 def thread_pull_data_func(running):
     data = not_reset_data_struct()
 
+    # preload old data to extract stats
     for attribute in data.keys():
         for switch in range(len(data[attribute]["webids"])):
             resp = requests.get(STREAM_QUERY_WITH_START_TIME.format(data[attribute]["webids"][switch], "-7d"),
@@ -186,7 +187,7 @@ def thread_pull_data_func(running):
 
     data = reset_data_struct()
 
-
+    # loop for ever and pull new data in
     while (running[0]):
         #print('nu wachten op de batch')
         while all([len(data["motor"]["latest_data"][i]) < MINIBATCH_SIZE for i in range(5)]):
