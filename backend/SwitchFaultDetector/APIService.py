@@ -176,6 +176,8 @@ def not_reset_data_struct():
 def reset_data_struct():
     return {
         "motor": {"webids": MOTOR_VALUES_WEBIDS, "latest_data": [[],[],[],[],[]]},
+        "steering_left": {"webids": STEERING_LEFT, "latest_data": [[], [], [], [], []]},
+        "steering_right": {"webids": STEERING_RIGHT, "latest_data": [[], [], [], [], []]},
         "control_left": {"webids": CONTROL_LEFT_WEBIDS, "latest_data": [[],[],[],[],[]]},
         "control_right": {"webids": CONTROL_RIGHT_WEBIDS, "latest_data": [[],[],[],[],[]]},
         "peak_current_left": {"webids": PEAK_CURRENT_LEFT, "latest_data": [[],[],[],[],[]]},
@@ -191,8 +193,6 @@ def reset_data_struct():
         "energy_surface_right": {"webids": ENERGY_SURFACE_RIGHT, "latest_data": [[],[],[],[],[]]},
         "turn_around_time_left_motor": {"webids": TURN_AROUND_TIME_LEFT_MOTOR, "latest_data": [[],[],[],[],[]]},
         "the_one_that_works": {"webids": THE_ONE_THAT_WORKS, "latest_data": [[], [], [], [], []]},
-        "steering_left": {"webids": STEERING_LEFT, "latest_data": [[], [], [], [], []]},
-        "steering_right": {"webids": STEERING_RIGHT, "latest_data": [[], [], [], [], []]},
     }
 
 
@@ -226,7 +226,7 @@ def thread_pull_data_func(running):
         while all([len(data["motor"]["latest_data"][i]) < MINIBATCH_SIZE for i in range(5)]):
             for attribute in data.keys():
                 for switch in range(len(data[attribute]["webids"])):
-                    resp = requests.get(STREAM_QUERY_WITH_START_TIME.format(data[attribute]["webids"][switch], "-30d"),
+                    resp = requests.get(STREAM_QUERY_WITH_START_TIME.format(data[attribute]["webids"][switch], "-2m"),
                                         auth=HTTPBasicAuth("Group09", "Hackathon09"), verify=False)
                     jsondata = json.loads(resp.text)
                     items = jsondata["Items"]
